@@ -6,7 +6,7 @@ from django.db import connection
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 
-def get_books(request):
+def add_books(request):
     saved = False
     searchtitle = request.GET.get('searchtitle', '')
     sort = request.GET.get('sort', '')
