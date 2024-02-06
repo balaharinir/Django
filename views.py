@@ -45,13 +45,13 @@ def add_books(request):
 def get_books(request):
     searchtitle = request.GET.get('searchtitle', '')
     if searchtitle:
-        search_query = "SELECT * FROM example_addbook WHERE title LIKE %s"
+        search_query = "Select * from example_addbook where title like %s"
         with connection.cursor() as cursor:
             cursor.execute(search_query, ['%' + searchtitle + '%'])
             books = cursor.fetchall()
     else:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM example_addbook")
+            cursor.execute("Select * from example_addbook")
             books = cursor.fetchall()
     
 
