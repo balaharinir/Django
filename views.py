@@ -44,16 +44,26 @@ def add_books(request):
 
 def get_books(request):
     searchtitle = request.GET.get('searchtitle', '')
+    sort = request.GET.get('sort', '')
+    params = []
+
     if searchtitle:
         search = "Select * from example_addbook where title like %s"
-        with connection.cursor() as cursor:
-            cursor.execute(search, ['%' + searchtitle + '%'])
-            books = cursor.fetchall()
+        params.append('%' + searchtitle + '%')
     else:
-        with connection.cursor() as cursor:
-            cursor.execute("Select * from example_addbook")
-            books = cursor.fetchall()
-    
+        search = "select * from example_addbook"
+
+    if sort == 'desc':
+        sorting = " order by title desc"
+    elif sort == 'asc':
+        sorting = " order by title "
+    else:
+        sorting = ""
+
+    query = search + sorting
+    with connection.cursor() as cursor:
+        cursor.execute(query, params)
+        books = cursor.fetchall()
 
     data = [{'book_id': book[1], 'title': book[2]} for book in books]
     return JsonResponse({'books': data})

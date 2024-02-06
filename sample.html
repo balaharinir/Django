@@ -35,7 +35,10 @@
         <input type="text" id="searchtitle" name="searchtitle" placeholder="Enter book name...">
         <button type="button" id="searchButton">Search</button>
     </div>
-
+<div class="sort">
+        <button type="button" id="ascButton" class="sortButton" value="asc">A->Z</button>
+        <button type="button" id="descButton"class="sortButton" value="desc">Z->A</button>
+    </div>
     <table class="table">
         <thead>
             <tr>
@@ -52,6 +55,7 @@
             {% endfor %}
         </tbody>
     </table>
+
 
     <script>
 document.getElementById("button1").addEventListener("click", function(event) {
@@ -85,11 +89,14 @@ document.getElementById("button1").addEventListener("click", function(event) {
         $(document).ready(function() {
             $('#searchButton').click(function() {
                 var searchtitle = $('#searchtitle').val();
+		var sort = $('#ascButton').hasClass('active') ? 'asc' : ($('#descButton').hasClass('active') ? 'desc' : '');
+
                 $.ajax({
                     url: '/get_books/',
                     type: 'GET',
                     data: {
-                        'searchtitle': searchtitle
+                        'searchtitle': searchtitle,
+			'sort' : sort
                     },
                     success: function(response) {
                         $('#tablebody').empty(); 
@@ -118,6 +125,11 @@ document.getElementById("button1").addEventListener("click", function(event) {
 
             $('.closed').click(function() {
                 $('.popupopen').css('display', 'none');
+            });
+	     $('.sortButton').click(function() {
+                $('.sortButton').removeClass('active');
+                $(this).addClass('active');
+                $('#searchButton').click();
             });
         });
 function openPopup() {
