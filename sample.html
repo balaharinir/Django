@@ -57,67 +57,34 @@
     </table>
 <div class="pagination">
     <span class="links">
-        {% if books.has_previous %}
-            <a href="?page={{ books.previous_page_number }}">previous</a>
+        {% if pagination.hasPrevious %}
+            <a href="?page={{ pagination.page_number_int|add:-1 }}">previous</a>
         {% endif %}
-
-        <span class="current">
-            Page {{ page }} of {{ total_pages }}
-        </span>
-
-        {% if books.has_next %}
-            <a href="?page={{ books.next_page_number }}">next</a>
+        <span class="current">Page {{ pagination.page_number_int }} of {{ pagination.total_pages }}</span>
+        {% if pagination.hasNext %}
+            <a href="?page={{ pagination.page_number_int|add:1 }}">next</a>
         {% endif %}
-
-        {% for i in books.paginator.page_range %}
+	{% for i in pagination.page_range %}
             <a href="?page={{ i }}">{{ i }}</a>
         {% endfor %}
     </span>
 </div>
 
-
     <script>
-document.getElementById("button1").addEventListener("click", function(event) {
-    event.preventDefault();
-    const form = document.querySelector('form');
-    const formData = new FormData(form);
-
-    fetch(form.action, {
-        method: form.method,
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);
-        const tableBody = document.getElementById('tablebody');
-        tableBody.innerHTML = '';
-        data.books.forEach(book => {
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `<td>${book.book_id}</td><td>${book.title}</td>`;
-            tableBody.appendChild(newRow);
-        });
-        openPopup();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-});
-
-
-
-       $(document).ready(function() {
+        $(document).ready(function() {
             $('#searchButton').click(function() {
                 var searchtitle = $('#searchtitle').val();
-		var sort = $('#ascButton').hasClass('active') ? 'asc' : ($('#descButton').hasClass('active') ? 'desc' : '');
+                var sort = $('#ascButton').hasClass('active') ? 'asc' : ($('#descButton').hasClass('active') ? 'desc' : '');
+                var currentPage = new URLSearchParams(window.location.search).get('page') || 1;
 
-		var currentPage = $('.current').text().split(' ')[1];
+                
                 $.ajax({
-                     url: '/get_books/',
+                    url: '/get_books/',
                     type: 'GET',
                     data: {
                         'searchtitle': searchtitle,
-			'sort' : sort,
-			'page': currentPage
+                        'sort': sort,
+                        'page': currentPage
                     },
                     success: function(response) {
                         $('#tablebody').empty(); 
@@ -129,6 +96,41 @@ document.getElementById("button1").addEventListener("click", function(event) {
                                 '</tr>'
                             );
                         });
+                        var pagination = response.pagination[0];
+                        updatePagination(pagination);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+            $('.pagination').on('click', 'a', function(event) {
+                event.preventDefault();
+                var page = $(this).attr('href').split('=')[1];
+                var searchtitle = $('#searchtitle').val();
+                var sort = $('#ascButton').hasClass('active') ? 'asc' : ($('#descButton').hasClass('active') ? 'desc' : '');
+                
+                $.ajax({
+                    url: '/get_books/',
+                    type: 'GET',
+                    data: {
+                        'searchtitle': searchtitle,
+                        'sort': sort,
+                        'page': page
+                    },
+                    success: function(response) {
+                        $('#tablebody').empty(); 
+                        response.books.forEach(function(book) {
+                            $('#tablebody').append(
+                                '<tr>' +
+                                    '<td>' + book.book_id + '</td>' +
+                                    '<td>' + book.title + '</td>' +
+                                '</tr>'
+                            );
+                        });
+                        var pagination = response.pagination[0];
+                        updatePagination(pagination);
                     },
                     error: function(error) {
                         console.log(error);
@@ -147,16 +149,30 @@ document.getElementById("button1").addEventListener("click", function(event) {
             $('.closed').click(function() {
                 $('.popupopen').css('display', 'none');
             });
-	     $('.sortButton').click(function() {
+
+            $('.sortButton').click(function() {
                 $('.sortButton').removeClass('active');
                 $(this).addClass('active');
                 $('#searchButton').click();
             });
+
+            function updatePagination(pagination) {
+                $('.pagination').empty();
+                if (pagination.hasPrevious) {
+                    $('.pagination').append('<a href="?page=' + (pagination.page_number_int - 1) + '">previous</a>');
+                }
+                $('.pagination').append('<span class="current">Page ' + pagination.page_number_int + ' of ' + pagination.total_pages + '</span>');
+                if (pagination.hasNext) {
+                    $('.pagination').append('<a href="?page=' + (pagination.page_number_int + 1) + '">next</a>');
+                }
+            }
         });
-function openPopup() {
-    document.querySelector(".popupopen").classList.add("active");   
-}
-function reset() {
+
+        function openPopup() {
+            document.querySelector(".popupopen").classList.add("active");   
+        }
+
+        function reset() {
             const form = document.querySelector('form');
             form.reset();
         }
