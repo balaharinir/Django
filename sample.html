@@ -13,7 +13,7 @@
     </div>
     <div class="popup">
         <div class="popup-content">
-            <form action="{% url 'add_books' %}" method="POST">
+            <form  method="POST">
                 <img src="{% static 'close.png' %}" class="close">
                 <img src="{% static 'book.png' %}">
                 {% csrf_token %}
@@ -79,7 +79,7 @@ $('#button1').click(function(event) {
 
     $.ajax({
         type: 'POST',
-        url: form.action,
+        url: '/add_books/',
         data: formData,
         processData: false,
         contentType: false,
@@ -101,6 +101,7 @@ $('#button1').click(function(event) {
         }
     });
 });
+
 
         $(document).ready(function() {
             $('#searchButton').click(function() {
