@@ -72,32 +72,35 @@
 
     <script>
 
-	document.getElementById("button1").addEventListener("click", function(event) {
+$('#button1').click(function(event) {
     event.preventDefault();
-    const form = document.querySelector('form');
-    const formData = new FormData(form);
+    var form = $('form')[0];
+    var formData = new FormData(form);
 
-    fetch(form.action, {
-        method: form.method,
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);
-        const tableBody = document.getElementById('tablebody');
-        tableBody.innerHTML = '';
-        data.books.forEach(book => {
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `<td>${book.book_id}</td><td>${book.title}</td>`;
-            tableBody.appendChild(newRow);
-        });
-        openPopup();
-    })
-    .catch(error => {
-        console.error('Error:', error);
+    $.ajax({
+        type: 'POST',
+        url: form.action,
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(data) {
+            console.log(data);
+            $('#tablebody').empty(); 
+            data.books.forEach(function(book) {
+                $('#tablebody').append(
+                    '<tr>' +
+                        '<td>' + book.book_id + '</td>' +
+                        '<td>' + book.title + '</td>' +
+                    '</tr>'
+                );
+            });
+            openPopup();
+        },
+        error: function(error) {
+            console.log(error);
+        }
     });
 });
-
 
         $(document).ready(function() {
             $('#searchButton').click(function() {
