@@ -9,14 +9,13 @@ from django.http import JsonResponse
 
 import json
 
-
-
 def add_books(request):
     saved = False
-    
     with connection.cursor() as cursor:
         cursor.execute("Select * from example_addbook")
         books = cursor.fetchall()
+
+    
 
     if request.method == 'POST':
         form = BookForm(request.POST)
@@ -38,11 +37,12 @@ def add_books(request):
                 return JsonResponse(data)
             
             else:
-                messages.warning(request, 'Book already exists with the same details.')
                 return JsonResponse({'error': 'Book already exists.'}, status=400)
         else:
             return JsonResponse({'errors': form.errors}, status=400)
-    form = BookForm()
+    else:
+        
+        form = BookForm()
     return render(request, 'sample.html', {'form': form, 'saved': saved, 'books': books})
 
 
