@@ -9,7 +9,7 @@ from django.http import JsonResponse
 
 import json
 
-def add_books(request):
+def add_book(request):
     saved = False
     with connection.cursor() as cursor:
         cursor.execute("Select * from example_addbook")
@@ -41,16 +41,15 @@ def add_books(request):
         else:
             return JsonResponse({'errors': form.errors}, status=400)
     else:
-        
         form = BookForm()
-    return render(request, 'sample.html', {'form': form, 'saved': saved, 'books': books})
+        return render(request, 'sample.html', {'form': form, 'saved': saved, 'books': books})
 
 
 
 def get_books(request):
     searchtitle = request.GET.get('searchtitle', '')
     sort = request.GET.get('sort', '')
-    page_number = request.GET.get('page','')
+    page_number = request.GET.get('page','1')
     params = []
 
     if searchtitle:
