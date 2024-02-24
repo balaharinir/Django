@@ -1,58 +1,54 @@
 <html>
 <head>
-    
     <title>Book Details</title>
     {% load static %}
         
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"> 
     <link rel="stylesheet" href="{% static 'style.css' %}">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 </head>
 <body>
     <div class="container">
-        <marquee direction="left"><h1>ADD BOOK DETAILS</h1></marquee>
-       
+        <h1>ADD BOOK DETAILS</h1>
         <a href="#" class="button" id="button"><i class="fa-solid fa-book"></i>  ADD BOOK</a>  
     </div>
     <div class="popup">
         <div class="popup-content">
-            <form  id="bookForm" method="POST">
+            <form id="bookForm" method="POST">
                 <img src="{% static 'close.png' %}" class="close">
                 <img src="{% static 'book.png' %}">
                 {% csrf_token %}
                 {{ form }}
-                <button type="button" id="button1" class="button1" onclick="openPopup()">SUBMIT</button>
+                <button type="button" id="button1" class="button1" >SUBMIT</button>
             </form>
-            <div class="popupopen" id="popupopen" >
-                <img src="{% static 'tick.jpg' %}" class="tick ">
-                <button class="closed" onclick=" reset()">OK</button>
+            <div class="popupopen" id="popupopen">
+                <img src="{% static 'tick.jpg' %}" class="tick">
+                <button class="closed">OK</button>
                 <h4>Submitted</h4>
                 <p>Book has been updated successfully...</p>
             </div>  
         </div>
     </div>
 
-    
-       <div class="search-icon" >
-        <i class="fa-solid fa-magnifying-glass" style="color: #4b86ec;"></i>    </div>
-       <div class="search-bar">
+    <div class="search-icon">
+        <i class="fa-solid fa-magnifying-glass" style="color: #4b86ec;"></i>
+    </div>
+    <div class="search-bar">
         <label for="searchtitle">Search by Book Title:</label>
         <input type="text" id="searchtitle" class="form-control form-control-sm col-2" name="searchtitle" placeholder="Enter book name...">
-        <button type="button" id="searchButton" >Search</button>
+        <button type="button" id="searchButton">Search</button>
     </div>
-<div class="sort">
+    <div class="sort">
         <label>Sort by:</label>
         <button type="button" id="ascButton" class="btn btn-outline-light sortButton" value="asc">A->Z</button>
         <button type="button" id="descButton" class="btn btn-outline-light sortButton" value="desc">Z->A</button>
     </div>
     
     <table class="table table-Light table-striped">
-        <thead >
+        <thead>
             <tr>
                 <th>Book ID</th>
                 <th>Title</th>
@@ -68,8 +64,7 @@
         </tbody>
     </table>
 
-<div class="pagination pagination justify-content-end">
-   
+    <div class="pagination pagination justify-content-end">
         {% if pagination.hasPrevious %}
             <a href="?page={{ pagination.page_number_int|add:-1 }}">previous</a>
         {% endif %}
@@ -77,88 +72,50 @@
         {% if pagination.hasNext %}
             <a href="?page={{ pagination.page_number_int|add:1 }}">next</a>
         {% endif %}
-	
-    </span>
-</div>
+    </div>
 
     <script>
-
-$('#button1').click(function(event) {
-    event.preventDefault();
-    var form = $('#bookForm')[0];
-    var formData = new FormData(form);
-   
- 
-    $.ajax({
-        type: 'POST',
-        url: '/add_book',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(data) {
-            console.log(data);
-            $('#tablebody').empty(); 
-            data.books.forEach(function(book) {
-                $('#tablebody').append(
-                    '<tr>' +
-                        '<td>' + book.book_id + '</td>' +
-                        '<td>' + book.title + '</td>' +
-                    '</tr>'
-                );
-            });
-            openPopup();
+        $('#button1').click(function(event) {
+            event.preventDefault();
+            var form = $('#bookForm')[0];
+            var formData = new FormData(form);
            
+            $.ajax({
+                type: 'POST',
+                url: '/add_book',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                   
+                    console.log(data);
+                  
+                    var currentPage = new URLSearchParams(window.location.search).get('page') || 1;
             
-        },
-        error: function(error) {
-            console.log(error);
-        }
-    });
-});
-
+                    if (currentPage == data.page_number) {
+                        $('#tablebody').append(
+                            '<tr>' +
+                                '<td>' + data.book.book_id + '</td>' +
+                                '<td>' + data.book.title + '</td>' +
+                            '</tr>'
+                        );
+                    }
+                    openPopup();
+                    clearForm();
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+          
+        });
 
         $(document).ready(function() {
-            $('#searchButton').click(function() {
+           
+            function handlePagination(page) {
                 var searchtitle = $('#searchtitle').val();
                 var sort = $('#ascButton').hasClass('active') ? 'asc' : ($('#descButton').hasClass('active') ? 'desc' : '');
-                var currentPage = new URLSearchParams(window.location.search).get('page') || 1;
-
-                
-                $.ajax({
-                    url: '/get_books',
-                    type: 'GET',
-                    data: {
-                        'searchtitle': searchtitle,
-                        'sort': sort,
-                        'page': currentPage,
-                    
-                    },
-                    success: function(response) {
-                        $('#tablebody').empty(); 
-                        response.books.forEach(function(book) {
-                            $('#tablebody').append(
-                                '<tr>' +
-                                    '<td>' + book.book_id + '</td>' +
-                                    '<td>' + book.title + '</td>' +
-                                '</tr>'
-                            );
-                        });
-                        var pagination = response.pagination[0];
-                        updatePagination(pagination);
-                    },
-                    error: function(error) {
-                        console.log(error);
-                    }
-                });
-            });
-
-            $('.pagination').on('click', 'a', function(event) {
-                event.preventDefault();
-                
-                var page = $(this).attr('href').split('=')[1];
-                var searchtitle = $('#searchtitle').val();
-                var sort = $('#ascButton').hasClass('active') ? 'asc' : ($('#descButton').hasClass('active') ? 'desc' : '');
-                
+    
                 $.ajax({
                     url: '/get_books',
                     type: 'GET',
@@ -184,9 +141,70 @@ $('#button1').click(function(event) {
                         console.log(error);
                     }
                 });
+            }
+            
+            
+            function updatePagination(pagination) {
+                $('.pagination').empty();
+                if (pagination.hasPrevious) {
+                    $('.pagination').append('<a href="#" data-page="' + (pagination.page_number_int - 1) + '"> <- previous  </a>');
+                }
+                $('.pagination').append('<span class="current">  Page ' + pagination.page_number_int + ' of   ' + pagination.total_pages + '</span>');
+                for (var i = 1; i <= pagination.total_pages; i++) {
+                    if (i === pagination.page_number_int) {
+                        $('.pagination').append('<span class="present">' + i + '</span>');
+                    } else {
+                        $('.pagination').append('<a href="#" data-page="' + i + '">' + i + '</a>');
+                    }
+                }
+                if (pagination.hasNext) {
+                    $('.pagination').append('<a href="#" data-page="' + (pagination.page_number_int + 1) + '">  next-></a>');
+                }
+            }
+    
+            
+            handlePagination(1);
+            $(document).ready(function() {
+            $('#searchButton').click(function() {
+                var searchtitle = $('#searchtitle').val();
+                var sort = $('#ascButton').hasClass('active') ? 'asc' : ($('#descButton').hasClass('active') ? 'desc' : '');
+                var currentPage = new URLSearchParams(window.location.search).get('page') || 1;
+
+                $.ajax({
+                    url: '/get_books',
+                    type: 'GET',
+                    data: {
+                        'searchtitle': searchtitle,
+                        'sort': sort,
+                        'page': currentPage,
+                    },
+                    success: function(response) {
+                        $('#tablebody').empty(); 
+                        response.books.forEach(function(book) {
+                            $('#tablebody').append(
+                                '<tr>' +
+                                    '<td>' + book.book_id + '</td>' +
+                                    '<td>' + book.title + '</td>' +
+                                '</tr>'
+                            );
+                        });
+                        var pagination = response.pagination[0];
+                        updatePagination(pagination);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
             });
 
-            $('#button').click(function() {
+            
+            $('.pagination').on('click', 'a', function(event) {
+                event.preventDefault();
+                var page = $(this).data('page');
+                handlePagination(page);
+            });
+        });
+        $('#button').click(function() {
                 $('.popup').css('display', 'flex');
             });
 
@@ -199,45 +217,25 @@ $('#button1').click(function(event) {
             });
 
             $('.sortButton').click(function() {
-    if ($(this).hasClass('active')) {
-        $(this).removeClass('active');
-    } else {
-        $('.sortButton').removeClass('active');
-        $(this).addClass('active');
-    }
-    $('#searchButton').click();
-});
-            function updatePagination(pagination) {
-                $('.pagination').empty();
-                if (pagination.hasPrevious) {
-                    $('.pagination').append('<a href="?page=' + (pagination.page_number_int - 1) + '"><- previous  </a>');
+                if ($(this).hasClass('active')) {
+                    $(this).removeClass('active');
+                } else {
+                    $('.sortButton').removeClass('active');
+                    $(this).addClass('active');
                 }
-                $('.pagination').append('<span class="current">  Page ' + pagination.page_number_int + ' of   ' + pagination.total_pages + '</span>');
-                for (var i = 1; i <= pagination.total_pages; i++) {
-        if (i === pagination.page_number_int) {
-            $('.pagination').append('<span class="present">' + i + '</span>');
-        } else {
-            $('.pagination').append('<a href="?page=' + i + '">' + i + '</a>');
-        }
-    }
-                if (pagination.hasNext) {
-                    $('.pagination').append('<a href="?page=' + (pagination.page_number_int + 1) + '">  next-></a>');
-                }
-               
-            }
+                $('#searchButton').click();
+            });
         });
-
-       function openPopup() {
-        document.querySelector(".popupopen").classList.add("active");   
-}
-
-        function reset() {
-            const form = document.querySelector('form');
-            form.reset();
+        function openPopup() {
+            console.log("Popup opened successfully!");
+            document.querySelector(".popupopen").classList.add("active");
         }
-       
 
-       
+        function clearForm() {
+        $('#bookForm').find('input[type=text], input[type=number], textarea').val('');
+    }
+    
     </script>
+    
 </body>
 </html>
